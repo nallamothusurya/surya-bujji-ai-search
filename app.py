@@ -1,25 +1,32 @@
+import os
 import re
 import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold, GenerationConfig # Added GenerationConfig
+from google.generativeai.types import HarmCategory, HarmBlockThreshold, GenerationConfig
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, request, render_template
 from markupsafe import Markup
 import json
 import markdown2
-import traceback # For detailed error logging
+import traceback
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
+
 try:
-    # User's provided API key
-    api_key ="AIzaSyBjTaPSaavhmAVFOEUY9lS6x2mw8ikkaUU" # Replace with your actual key if needed
+    # Access API key from environment variable
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise ValueError("GOOGLE_API_KEY not found in .env file or environment variables.")  # More specific error
     genai.configure(api_key=api_key)
-    # Using a known latest model for broader compatibility, adjust if 'gemini-2.0-flash' is specifically required and available
-    model = genai.GenerativeModel('gemini-2.0-flash') # 
+    model = genai.GenerativeModel('gemini-2.0-flash')
 except Exception as e:
     tb_str = traceback.format_exc()
     print(f"FATAL ERROR: Could not configure or initialize Gemini API. Exception Type: {type(e)}, Error: {e}\nTraceback:\n{tb_str}")
-    model = None 
+    model = None
 
 # --- Core Helper Functions ---
 def get_best_image_url(search_query: str, image_index_to_fetch: int = 0) -> str | None:
